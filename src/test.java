@@ -12,7 +12,7 @@ public class test {
 	public static void main(String[] args) throws FileNotFoundException {
 		TFReader tfr = new TFReader("labeled_train.tf");
 		List<HashMap<Integer, Integer>> maps = tfr.read();
-		
+		//this is a test comment
 
 	}
 
