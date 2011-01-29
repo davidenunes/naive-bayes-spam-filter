@@ -1,5 +1,6 @@
 package util;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -118,6 +119,23 @@ public class EmailDataset {
 	 */
 	public int getNumMessages(){
 		return this.messages.size();
+	}
+	
+	/**
+	 * This method returns the dimension 
+	 * of the dictionary present on this email dataset
+	 * ->
+	 * NUMBER OF DISTINCT TOKENS in all the messages
+	 * 
+	 * @return Integer - number of unique tokens
+	 */
+	public int getDictionaryDim(){
+		HashSet<Integer> tokens = new HashSet<Integer>();
+		for(EmailMessage m : messages){
+			tokens.addAll(m.getTokens().keySet());
+		}
+		return tokens.size();
+		
 	}
 	
 	
