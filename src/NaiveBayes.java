@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import javax.swing.text.StyleContext.SmallAttributeSet;
+
 import util.EmailDataset;
 import util.EmailMessage;
 import util.Pair;
@@ -73,12 +75,13 @@ public class NaiveBayes {
 	public NaiveBayes(String filename, Integer sigTokens) throws FileNotFoundException{
 
 		//calcular threshold
-		this.limiar= threashold(filename);
+		this.limiar= 8;//threashold(filename);
 
 		this.tfr=new TFReader(filename);
 		this.dadosTrain=tfr.read();
-		dadosTrain=mostSigTokens(sigTokens,dadosTrain);
-		algoritmoEM(dadosTrain);
+		//dadosTrain=mostSigTokens(sigTokens,dadosTrain);
+		createModelNB(dadosTrain);
+		
 
 		/* //Algoritmo EM
 		 //1.- Calcular NB so com labeled_train.tf
@@ -107,37 +110,86 @@ public class NaiveBayes {
 		 */	 
 	}
 
-	private void algoritmoEM(EmailDataset dadosTrain)throws FileNotFoundException{
+	public void algoritmoEM(String filename1, String filename2)throws FileNotFoundException{
+		TFReader rf1 = new TFReader(filename1);
+		TFReader rf2 = new TFReader(filename2);
+		
+		//read 2 files
+		EmailDataset dataset1 = rf1.read();
+		EmailDataset dataset2 = rf2.read();
+		
+		
+		
+		//merge data
+		EmailDataset datasetMerged = new EmailDataset();
+		datasetMerged.merge(dataset1);
+		datasetMerged.merge(dataset2);
+		
+		//save the current 2 datasets for later iteration
+		EmailDataset tempDataset = datasetMerged.clone();
+		EmailDataset tempTrain = dadosTrain.clone();
+		
+		
+		//1 calculate likehood
+		
 
-		String filename2="u0_eval.tf";
-		String filename3="u1_eval.tf";
 
-		createModelNB(dadosTrain);
-		System.out.println("Modelo1:");
-		System.out.println("nummsg:"+dadosTrain.getNumMessages());
-		System.out.println("numham:"+dadosTrain.getNumHam());
-		System.out.println("numspam:"+dadosTrain.getNumSpam());
-		double x=calcularVerosimilhanca();
-		System.out.println("Verosimilhan�a modelo1:" +x);
-
-
-		getLabelledData(filename2);
-		addDadosValidacao(filename3);
-		clasificationNB(this.dadosClasificacao); 
-		addDadosClasificacaoADadosTrain();
-
-		//1. store current dataset
-		previousItDataset = dadosTrain.clone();
-
+		
+		
+		clasificationNB(datasetMerged); 
+		datasetMerged.merge(dadosTrain);
+		dadosTrain = datasetMerged;
+		
+		double previousLikehood= 0;
+		double currentLikehood = 0;
+		
+		int i=0; //TODO delete later
+		//ITERATE
+		
 		createModelNB(this.dadosTrain);
-		System.out.println("Modelo2:");
-		System.out.println("nummsg: "+dadosTrain.getNumMessages());
-		System.out.println("numham:"+dadosTrain.getNumHam());
-		System.out.println("numspam:"+dadosTrain.getNumSpam());  
-		double y=calcularVerosimilhanca();
-		System.out.println("Verosimilhan�a modelo2:" +y);
+		do{
+			
+			previousLikehood = currentLikehood;
+			
+			
+			//some feedback
+			System.out.println("Modelo2:");
+			System.out.println("nummsg: "+dadosTrain.getNumMessages());
+			System.out.println("numham:"+dadosTrain.getNumHam());
+			System.out.println("numspam:"+dadosTrain.getNumSpam());
+			
+			
+			datasetMerged = tempDataset.clone();
+			//classify 
+			clasificationNB(datasetMerged);
+			
+			
+			datasetMerged.merge(tempTrain);
+			
+			this.dadosTrain = datasetMerged.clone();
+			
+			
+			createModelNB(this.dadosTrain);
+			
+			currentLikehood=calcularVerosimilhanca();
+			
+			System.out.println("diferença corrente: "+(currentLikehood - previousLikehood));
+			i++;
+		}while(i<3);
+		
+		
+		
+		
+		
+		
+		
 
+		
+		  
+		
+		
 
+		
 	}
 
 
@@ -278,17 +330,6 @@ public class NaiveBayes {
 		tableTokenProb();
 	}
 
-	private void getLabelledData(String filename)throws FileNotFoundException{
-
-		this.tfr2=new TFReader(filename);
-		this.dadosClasificacao=tfr2.read();
-
-	}
-	private void addDadosValidacao(String filename)throws FileNotFoundException{
-		this.tfr2=new TFReader(filename);
-		this.dadosClasificacao.add(tfr2.read().getMessages());
-
-	}
 
 	private void clasificationNB(EmailDataset dadosClasif){
 
@@ -297,26 +338,12 @@ public class NaiveBayes {
 
 		for(EmailMessage m:messages){
 			HashMap<Integer,Integer> tokens=m.getTokens();
-			classePredic= classif(tokens, limiar, dadosTrain);
+			classePredic= classify(tokens, limiar, dadosTrain);
 			//System.out.println(classePredic);
 			m.classify(classePredic);	
 		}
 	}
 
-	private void addDadosClasificacaoADadosTrain(){
-		messagesTrain=dadosTrain.getMessages();
-		messagesClasificacao=dadosClasificacao.getMessages();
-
-		Iterator<EmailMessage> add= messagesClasificacao.iterator();
-
-		while (add.hasNext()){
-			messagesTrain.add(add.next());
-		}
-
-		this.messages=messagesTrain;
-		this.dadosTrain=new EmailDataset(messages);
-
-	}
 
 
 	private double probClass(String c, EmailDataset dados){
@@ -339,16 +366,24 @@ public class NaiveBayes {
 		}if(c.equals("ham")){
 			current = ham;
 		}
-
-		int ocurrToken = current.get(token);
+		int ocurrToken = 0;
+		if(current.containsKey(token))
+			ocurrToken = current.get(token);
 		int sumOcurrToken = 0;
-		for(Integer key : current.keySet()){
-			sumOcurrToken += current.get(key);	
-		}
+		sumOcurrToken = allTokenOcurr(current);
 		double result = (ocurrToken + 1) / sumOcurrToken + dim;
 
 		return result;
 
+	}
+	
+	
+	private int allTokenOcurr(HashMap<Integer, Integer> classTable){
+		int sumOcurrToken = 0;
+		for(Integer key : classTable.keySet()){
+			sumOcurrToken += classTable.get(key);	
+		}
+		return sumOcurrToken;
 	}
 
 	private void tableTokenProb(){
@@ -362,24 +397,17 @@ public class NaiveBayes {
 
 
 
-	public int classif(HashMap<Integer, Integer> line, double threshold, EmailDataset dados){
+	public int classify(HashMap<Integer, Integer> line, double threshold, EmailDataset dados){
 
 		double probClassSpam = probClass("spam" ,dados);
 		double probClassHam = probClass("ham",dados);
 		double result =  Math.log(probClassSpam / probClassHam); 
 
 		for(Integer token: line.keySet()){
-			//result += Math.log(spamProb.get(token) / hamProb.get(token));
-
-			if(spamProb.containsKey(token)&&(hamProb.containsKey(token))){
+			if(spamProb.containsKey(token)){
 				result += Math.log(spamProb.get(token) / hamProb.get(token));
-				//System.out.println("Sartu da biak betetzen dituenean");
-			}else if (spamProb.containsKey(token)){
-				result+=Math.log(spamProb.get(token)/(1/dim));
-				//System.out.println("Sartu da spam betetzen duenean");
-			}else if (hamProb.containsKey(token)){
-				result+=Math.log((1/dim)/(hamProb.get(token)));
-				//System.out.println("Sartu da ham betetzen duenean");
+			}else{
+				result+=Math.log((1/getTokenProb(token, "spam")/getTokenProb(token, "ham")));
 			}
 		}
 
@@ -389,6 +417,8 @@ public class NaiveBayes {
 		else
 			classification = -1;
 
+		System.out.println("Classification: "+ classification);
+		
 		return classification;
 	}
 
@@ -430,7 +460,7 @@ public class NaiveBayes {
 			int fn=0;
 			for(EmailMessage m:messages){
 				HashMap<Integer,Integer> tokens=m.getTokens();
-				classePredic= this.classif(tokens, i,train);
+				classePredic= this.classify(tokens, i,train);
 
 				if ((classePredic==1)&& (m.getClassification()==-1)) //FP
 					fp++;

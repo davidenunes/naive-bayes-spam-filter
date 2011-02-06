@@ -31,6 +31,12 @@ public class EmailDataset implements Cloneable {
 	
 	
 	
+	public EmailDataset() {
+		this.messages = new LinkedList<EmailMessage>();
+	}
+
+
+
 	public List<EmailMessage> getMessages(){
 		return messages;
 	}
@@ -79,7 +85,7 @@ public class EmailDataset implements Cloneable {
 		
 		
 		//chamar ao metodo para incluir todos os keys nas duas tabelas
-		pair=addkeys(spamTable,hamTable);
+		pair=completeKeys(spamTable, hamTable);
 		return pair;
 	}
 	
@@ -94,7 +100,7 @@ public class EmailDataset implements Cloneable {
 	 * @param hamTable - table with ham token occurrencies
 	 * @return ...
 	 */
-	private Pair<HashMap<Integer, Integer>>addkeys(HashMap<Integer, Integer> spamTable,HashMap<Integer, Integer> hamTable ){
+	private Pair<HashMap<Integer, Integer>>completeKeys(HashMap<Integer, Integer> spamTable,HashMap<Integer, Integer> hamTable ){
 		
 		Pair<HashMap<Integer,Integer>> pair = new Pair<HashMap<Integer,Integer>>();
 		
@@ -196,8 +202,8 @@ public class EmailDataset implements Cloneable {
 	 * @param messageList List<EmailMessage> the list of messages to be 
 	 * added to this dataset
 	 */
-	public void add(List<EmailMessage> messageList){
-				messages.addAll(messageList);
+	public void merge(EmailDataset dataset){
+				messages.addAll(dataset.getMessages());
 	}
 	
 	
