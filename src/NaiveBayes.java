@@ -96,8 +96,8 @@ public class NaiveBayes {
 		tableTokenProb(); //fills the two previous tables
 
 		//init class prob
-		spamProb = getClassProb("spam", trainData);
-		hamProb = getClassProb("ham", trainData);
+		spamProb = getClassProb("spam");
+		hamProb = getClassProb("ham");
 
 	}
 
@@ -288,19 +288,36 @@ private void classifyAll(EmailDataset data, int threshold){
 	}
 }
 
-private double getClassProb(String c, EmailDataset dados){
+
+/**
+ * Get the overall probability of a class to ocurr in all the dataset
+ * 
+ * @param c String class to be considered ("spam" / "ham")
+ * 
+ * @param dados 
+ * @return
+ */
+private double getClassProb(String c){
 	double result = 0;
 	if(c.equals("spam")){
-		result=dados.getNumSpam() /dados.getNumSpam()+ dados.getNumHam();
+		result= spamOcurrTable.keySet().size() / trainData.size();
 	}
 	else if(c.equals("ham")){
-		result=dados.getNumHam() / dados.getNumHam() + dados.getNumSpam();
+		result= hamOcurrTable.keySet().size() / trainData.size();
 	}
 
 	return result;
 }
 
 
+/**
+ * Gets the probability of a token ocurr for a given class
+ * 
+ * @param token - Integer - the token to be checked
+ * @param c - the class considered ("spam" / "ham")
+ * @return probability Double - the conditional probability of the 
+ * token occurency
+ */
 private double getTokenProb(int token, String c){
 
 	HashMap<Integer, Integer> current = null;
@@ -309,17 +326,38 @@ private double getTokenProb(int token, String c){
 	}if(c.equals("ham")){
 		current = spamOcurrTable;
 	}
+	
 	int ocurrToken = 0;
 	if(current.containsKey(token))
 		ocurrToken = current.get(token);
+	
+	
 	int sumOcurrToken = 0;
 	sumOcurrToken = allTokenOcurr(current);
-	double result = (ocurrToken + 1) / sumOcurrToken + dim;
+	
+	
+	
 
+	double result = (ocurrToken + 1) / ((sumOcurrToken + dim)*1.0);
+
+	//System.out.println("num: "+(ocurrToken + 1));
+	//System.out.println("denom: "+  (sumOcurrToken + dim));
+	System.out.println("result: "+result);
+	
+	
+	
 	return result;
 
 }
 
+/**
+ * Method that calculates the sum of all the ocurrencies 
+ * of all the tokens in the given table
+ * 
+ * @param classTable spamOcurrTable or hamOcurrTable
+ * 
+ * @return sum Integer sum of the ocurrencies of all the tokens...
+ */
 private int allTokenOcurr(HashMap<Integer, Integer> classTable){
 	int sumOcurrToken = 0;
 	for(Integer key : classTable.keySet()){
@@ -328,31 +366,48 @@ private int allTokenOcurr(HashMap<Integer, Integer> classTable){
 	return sumOcurrToken;
 }
 
+
+/**
+ * Method that fills the probability tables of the model
+ * 
+ */
 private void tableTokenProb(){
 	for(Integer key : spamOcurrTable.keySet()){
+		
 		spamProbTable.put(key, getTokenProb(key, "spam"));
+		
 	}
 	for(Integer key : hamOcurrTable.keySet()){
 		hamProbTable.put(key, getTokenProb(key, "ham"));
 	}
 }
 
-
+/**
+ * Method that sets the classification value of the message
+ * according to the current model
+ * 
+ * @param m - EmailMessage message to be classified
+ * @param threshold - classification threshold
+ * @return the classification given (1, -1)
+ */
 public int classify(EmailMessage m, double threshold){
 
 	double result =  Math.log(spamProb / hamProb); 
 
 	for(Integer token: m){
 		if(spamProbTable.containsKey(token)){
-			result += Math.log(spamProbTable.get(token) / hamProbTable.get(token));
+			result += (spamProbTable.get(token) / hamProbTable.get(token));
+			//System.out.println("spam prob: "+getTokenProb(token, "spam"));
+			//System.out.println("ham prob: "+getTokenProb(token, "ham"));
 		}else{
-			result+=Math.log((getTokenProb(token, "spam")/getTokenProb(token, "ham")));
+			result+= ((getTokenProb(token, "spam")/getTokenProb(token, "ham")));
+			
 		}
 	}
 
 	int classification = 0;
 	
-	if(result > Math.log(threshold))
+	if(result > (threshold))
 		classification = 1;
 	else
 		classification = -1;
@@ -362,6 +417,15 @@ public int classify(EmailMessage m, double threshold){
 	return classification;
 }
 
+/**
+ * Returns a list of Tables of false positive and false negative
+ * classifications to aid in the threshold choice
+ * 
+ * @param filename - labelled data file to be used
+ * @return List<ThresholdTable> FP and FN table list
+ * 
+ * @throws FileNotFoundException
+ */
 public static List<ThresholdTable> threashold(String filename)throws FileNotFoundException{
 	List<ThresholdTable> v =new LinkedList<ThresholdTable>();
 	
