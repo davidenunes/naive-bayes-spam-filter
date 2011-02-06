@@ -8,20 +8,40 @@ import java.util.Scanner;
 
 import util.EmailDataset;
 import util.EmailMessage;
+import util.Pair;
 
 
 
-
+/**
+ * Class used to create reader objects for .tf files
+ * the files contain token information about email messages
+ * 
+ * 
+ * @author davide
+ * @author ainara
+ */
 public class TFReader {
 	private String filename;
 	
-	
+	/**
+	 * Constructor
+	 * 
+	 * @param filename String the file to be read
+	 */
 	public TFReader(String filename){
 		this.filename = filename;
 		
 	}
 	
-	
+	/**
+	 * Method used to read the tf file supplied in the constructor
+	 * and return an EmailDataset object containing all the 
+	 * EmailMessages of the file
+	 * 
+	 * @return messages EmailDataset - the messages loaded into a dataset
+	 * 
+	 * @throws FileNotFoundException
+	 */
 	public EmailDataset read() throws FileNotFoundException{
 		//fist item spam second ham
 		List<EmailMessage> messages = new LinkedList<EmailMessage>();
@@ -45,7 +65,8 @@ public class TFReader {
 			currentHashMap = new HashMap<Integer, Integer>();
 			
 			String[] integers = null;
-			for(int i=k; i<pairs.length; i++){
+			
+			for(int i=1; i<pairs.length; i++){
 				 integers = pairs[i].split(":");
 				 int n1 = Integer.parseInt(integers[0]);
 				 int n2 = Integer.parseInt(integers[1]);				 
@@ -64,10 +85,53 @@ public class TFReader {
 	}
 	
 	
+	//TODO why not constrain this to email dataset
+	/*
+	 * Hago la division del fichero de datos, conjunto de train primer emaildataset
+	 * segundo emaildataset validacion
+	 */
+	public Pair<EmailDataset> divisaoConjuntoDados(String filename) throws FileNotFoundException {
+		
+		List<EmailMessage> messagesTrain = new LinkedList<EmailMessage>();
+		List<EmailMessage> messagesValidacao = new LinkedList<EmailMessage>();
+		EmailDataset train=null;
+		EmailDataset validacao=null;
+		
+		Scanner sc = new Scanner(new FileReader(filename));
+		
+		HashMap<Integer, Integer> currentHashMap = null;
+		while(sc.hasNextLine()){
+			String line = sc.nextLine();
+			String[] pairs = line.split(" ");
+			
+			int classification = Integer.parseInt(pairs[0]);
+			currentHashMap = new HashMap<Integer, Integer>();
+			String[] integers = null;
+			for(int i=1; i<pairs.length; i++){
+				 integers = pairs[i].split(":");
+				 int n1 = Integer.parseInt(integers[0]);
+				 int n2 = Integer.parseInt(integers[1]);				 
+				 currentHashMap.put(n1, n2);
+			}
+			
+			if(Math.random() > 0.5)//subtrain set
+				messagesTrain.add(new EmailMessage(classification, currentHashMap));
+			else
+				messagesValidacao.add(new EmailMessage(classification, currentHashMap));
+				
+		}
+				
+		sc.close();
+		train=new EmailDataset(messagesTrain);
+		validacao = new EmailDataset(messagesValidacao);
+		
+		Pair<EmailDataset> p= new Pair <EmailDataset>();
+		p.setFirst(train);
+		p.setSecond(validacao);
+		return p;
+	}
 	
 	
 	
-
-
-
 }
+

@@ -90,5 +90,11 @@ public class EmailMessage {
 		}
 	}
 	
+	public EmailMessage clone(){
+		return new EmailMessage(getClassification(),(HashMap<Integer, Integer>) tokens.clone());
+	}
+	
+
+	
 
 }

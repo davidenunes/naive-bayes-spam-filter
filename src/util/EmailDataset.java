@@ -1,6 +1,7 @@
 package util;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -17,7 +18,7 @@ import java.util.List;
  * @author ainara
  *
  */
-public class EmailDataset {
+public class EmailDataset implements Cloneable {
 	private List<EmailMessage> messages; 
 	
 	/**
@@ -27,6 +28,8 @@ public class EmailDataset {
 	public EmailDataset(List<EmailMessage> messages){
 		this.messages = messages;
 	}
+	
+	
 	
 	public List<EmailMessage> getMessages(){
 		return messages;
@@ -45,6 +48,7 @@ public class EmailDataset {
 	 * @return Pair<First,Second> 
 	 */
 	public Pair<HashMap<Integer, Integer>> getTotalTokenOcurr(){
+		
 		Pair<HashMap<Integer,Integer>> pair = new Pair<HashMap<Integer,Integer>>();
 		
 		HashMap<Integer, Integer> spamTable = new HashMap<Integer, Integer>();
@@ -73,10 +77,42 @@ public class EmailDataset {
 			}//end is tagged
 		}//end for each message
 		
+		
+		//chamar ao metodo para incluir todos os keys nas duas tabelas
+		pair=addkeys(spamTable,hamTable);
+		return pair;
+	}
+	
+	
+	//TODO return desnecessário diria eu, ao alterar nas referências já fica tudo
+	//alterado
+	/**
+	 * Metodo que adiciona as keys em falta às tabelas de ocorrência
+	 * de spam e ham
+	 * 
+	 * @param spamTable - table with spam token occurrencies
+	 * @param hamTable - table with ham token occurrencies
+	 * @return ...
+	 */
+	private Pair<HashMap<Integer, Integer>>addkeys(HashMap<Integer, Integer> spamTable,HashMap<Integer, Integer> hamTable ){
+		
+		Pair<HashMap<Integer,Integer>> pair = new Pair<HashMap<Integer,Integer>>();
+		
+		for(Integer key : spamTable.keySet()){//transverse spam table
+			if (!hamTable.containsKey(key)){
+				hamTable.put(key, 0);
+			}
+		}
+		for(Integer key : hamTable.keySet()){//transverse ham table
+			if(!spamTable.containsKey(key)){
+				spamTable.put(key, 0);
+			}
+		}
+		
 		pair.setFirst(spamTable);
 		pair.setSecond(hamTable);
-		
 		return pair;
+		
 	}
 	
 	/**
@@ -137,7 +173,31 @@ public class EmailDataset {
 		return tokens.size();
 		
 	}
+
+	//TODO test this
+	/**
+	 * Method that implements the clone operation for this dataset
+	 * it creates a new dataset and clones all the entries 
+	 * 
+	 * @return clonedObject EmailDataset - cloned dataset to be returned
+	 */
+	public EmailDataset clone(){
+		List<EmailMessage> messages2 = new LinkedList<EmailMessage>();
+		for(EmailMessage m: messages){
+			messages.add(m.clone());
+		}		
+		return new EmailDataset(messages2);
+	}
 	
 	
+	/**
+	 * Method that adds a list of messages to this dataset
+	 * 
+	 * @param messageList List<EmailMessage> the list of messages to be 
+	 * added to this dataset
+	 */
+	public void add(List<EmailMessage> messageList){
+				messages.addAll(messageList);
+	}
 	
 }
