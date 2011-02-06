@@ -22,16 +22,23 @@ public class test {
 	public static void main(String[] args) throws FileNotFoundException {
 		
 		NaiveBayes nb = new NaiveBayes("labeled_train.tf", 20);
+//		
+//		TFReader reader = new TFReader("labeled_train.tf");
+//		
+//		EmailDataset dataset = reader.read();
+//		EmailMessage msg = dataset.getMessages().get(5);
+//		
+//		int predicted = nb.classify(msg, 4);
+//		System.out.println(predicted);
 		
-		TFReader reader = new TFReader("labeled_train.tf");
+		nb.algoritmoEM("u0_eval.tf", "u1_eval.tf");
 		
-		EmailDataset dataset = reader.read();
-		EmailMessage msg = dataset.getMessages().get(2);
+		TFReader reader = new TFReader("u2_eval.tf");
 		
-		int predicted = nb.classify(msg, 2);
-		System.out.println(predicted);
 		
-		//nb.algoritmoEM("u0_eval.tf", "u1_eval.tf");
+		nb.classifyAll(reader.read(), 4);
+		
+		
 		
 	}
 	
