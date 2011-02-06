@@ -165,7 +165,16 @@ public class NaiveBayes {
 		return Math.log(result);
 	}
 
-
+	
+	//TODO rever isto
+	/**
+	 * Method that returns the EmailDataset filtered 
+	 * considering only the most significative tokens
+	 * 
+	 * @param t threashold for # tokens
+	 * @param dadosTrain current taindata
+	 * @return
+	 */
 	private EmailDataset mostSigTokens(Integer t, EmailDataset dadosTrain){
 
 		createModelNB(dadosTrain);
@@ -220,11 +229,11 @@ public class NaiveBayes {
 
 	}
 
-	//TODO n ha maneira de fazer isto de forma mais simples?
-	// sacar as chaves criar um map dos valores para as chaves
-	// meter valores numa array list -> ordenar
+
 	/**
-	 *	Method used to sort the tokens with its significance in mind
+	 *	Method used to create a hashmap of the expression 
+	 *	(P(ti | classe = +) / P(ti | classe = -))
+	 *	@param map 
 	 */
 	private static LinkedHashMap orderForValues(LinkedHashMap map){ //de valor mais pequeno a mais grande
 		LinkedHashMap newMap = new LinkedHashMap();
