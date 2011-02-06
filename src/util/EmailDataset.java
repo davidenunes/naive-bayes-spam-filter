@@ -1,6 +1,7 @@
 package util;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,8 +19,9 @@ import java.util.List;
  * @author ainara
  *
  */
-public class EmailDataset implements Cloneable {
+public class EmailDataset implements Cloneable, Iterable<EmailMessage> {
 	private List<EmailMessage> messages; 
+	private int dictionaryDim;
 	
 	/**
 	 * Simple constructor recieves a set of email messages
@@ -27,6 +29,7 @@ public class EmailDataset implements Cloneable {
 	 */
 	public EmailDataset(List<EmailMessage> messages){
 		this.messages = messages;
+		dictionaryDim = calculateDictionaryDim();
 	}
 	
 	
@@ -171,13 +174,16 @@ public class EmailDataset implements Cloneable {
 	 * 
 	 * @return Integer - number of unique tokens
 	 */
-	public int getDictionaryDim(){
+	public int calculateDictionaryDim(){
 		HashSet<Integer> tokens = new HashSet<Integer>();
 		for(EmailMessage m : messages){
 			tokens.addAll(m.getTokens().keySet());
 		}
 		return tokens.size();
-		
+	}
+	
+	public int getDictionaryDim(){
+		return dictionaryDim;
 	}
 
 	//TODO test this
@@ -228,6 +234,31 @@ public class EmailDataset implements Cloneable {
 	 */
 	public int size(){
 		return messages.size();
+	}
+	
+	
+	
+
+	@Override
+	public Iterator<EmailMessage> iterator() {
+		return messages.iterator();
+	}
+	
+	public void add(EmailMessage msg){
+		messages.add(msg);
+	}
+	
+	public Pair<EmailDataset> split(){
+		EmailDataset ds1 = new EmailDataset();
+		EmailDataset ds2 = new EmailDataset();
+		
+		for(EmailMessage m : messages)
+			if(Math.random() < 0.5)
+				ds1.add(m);
+			else
+				ds2.add(m);
+		
+		return new Pair<EmailDataset>(ds1, ds2);
 	}
 	
 }

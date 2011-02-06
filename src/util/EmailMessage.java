@@ -1,5 +1,7 @@
 package util;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Class that represents a line of data with a set of tokens and their
@@ -8,7 +10,7 @@ import java.util.HashMap;
  * @author ainara
  *
  */
-public class EmailMessage {
+public class EmailMessage implements Iterable<Integer> {
 	private int classification; // 1 spam -1 ham
 	private HashMap <Integer, Integer> tokens;
 	private boolean tagged;
@@ -106,6 +108,26 @@ public class EmailMessage {
 	 */
 	public String toString(){
 		return this.tokens.toString();
+	}
+
+	@Override
+	public Iterator<Integer> iterator() {
+		return tokens.keySet().iterator();
+	}
+	
+	public boolean containsToken(int token){
+		return tokens.containsKey(tokens);
+	}
+	
+	public void removeToken(int token){
+		tokens.remove(tokens);
+	}
+	
+	public void filter(Collection<Integer> tokenFilter){
+		for(Integer token : tokens.keySet()){
+			if(!tokenFilter.contains(token))
+				tokens.remove(token);
+		}
 	}
 	
 
