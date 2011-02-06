@@ -90,8 +90,22 @@ public class EmailMessage {
 		}
 	}
 	
+	/**
+	 * clone operation for an email message
+	 * executes a clone over the token map
+	 * 
+	 */
 	public EmailMessage clone(){
 		return new EmailMessage(getClassification(),(HashMap<Integer, Integer>) tokens.clone());
+	}
+	
+	
+	/**
+	 * Returns a string representation of the email message object
+	 * 
+	 */
+	public String toString(){
+		return this.tokens.toString();
 	}
 	
 

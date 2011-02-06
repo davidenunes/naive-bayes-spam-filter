@@ -87,8 +87,8 @@ public class EmailDataset implements Cloneable {
 	//TODO return desnecessário diria eu, ao alterar nas referências já fica tudo
 	//alterado
 	/**
-	 * Metodo que adiciona as keys em falta às tabelas de ocorrência
-	 * de spam e ham
+	 * Method that adds the keys missing in both
+	 * spam and ham tables
 	 * 
 	 * @param spamTable - table with spam token occurrencies
 	 * @param hamTable - table with ham token occurrencies
@@ -184,7 +184,7 @@ public class EmailDataset implements Cloneable {
 	public EmailDataset clone(){
 		List<EmailMessage> messages2 = new LinkedList<EmailMessage>();
 		for(EmailMessage m: messages){
-			messages.add(m.clone());
+			messages2.add(m.clone());
 		}		
 		return new EmailDataset(messages2);
 	}
@@ -198,6 +198,30 @@ public class EmailDataset implements Cloneable {
 	 */
 	public void add(List<EmailMessage> messageList){
 				messages.addAll(messageList);
+	}
+	
+	
+	/**
+	 * Returns the string representation of the whole 
+	 * dataset
+	 */
+	public String toString(){
+		StringBuilder sb = new StringBuilder();
+		for(EmailMessage m : messages){
+			sb.append(m.toString());
+			sb.append('\n');
+		}
+		
+		return sb.toString();
+	}
+	
+	/**
+	 * size forward method from List<EmailMessage>
+	 * 
+	 * @return size Integer number of messages on the set
+	 */
+	public int size(){
+		return messages.size();
 	}
 	
 }
