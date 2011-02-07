@@ -103,7 +103,16 @@ public class NaiveBayes {
 	}
 
 
-
+	/**
+	 * Runs the EM algorithm on the current model
+	 * 
+	 * @param filename1 String filename of one file to be used to support EM algoritm
+	 * @param filename2 String filename of one file to be used to support EM algoritm
+	 * 
+	 * When running, this method will supply some feedback in the default output
+	 * 
+	 * @throws FileNotFoundException
+	 */
 	public void algoritmoEM(String filename1, String filename2)throws FileNotFoundException{
 		System.out.println("initializing the EM algorithm");
 		TFReader rf1 = new TFReader(filename1);

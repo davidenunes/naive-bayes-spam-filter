@@ -22,7 +22,7 @@ public class Test {
 	 */
 	public static void main(String[] args) throws FileNotFoundException {
 		
-		NaiveBayes nb = new NaiveBayes("u0_eval_lab.tf", 20, 30);
+		NaiveBayes nb = new NaiveBayes("labeled_train.tf", 20, 30);
 //		
 //		TFReader reader = new TFReader("labeled_train.tf");
 //		
@@ -32,7 +32,7 @@ public class Test {
 //		int predicted = nb.classify(msg, 4);
 //		System.out.println(predicted);
 		
-		nb.algoritmoEM("labeled_train.tf", "u1_eval.tf");
+		nb.algoritmoEM("u0_eval.tf", "u1_eval.tf");
 		
 		TFReader reader = new TFReader("u2_eval_lab.tf");
 		

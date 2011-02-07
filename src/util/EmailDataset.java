@@ -256,6 +256,15 @@ public class EmailDataset implements Cloneable, Iterable<EmailMessage> {
 		messages.add(msg);
 	}
 	
+	/**
+	 * Method used to splin the dataset
+	 * in a random fashion returning a pair of 
+	 * datasets each one with the same size
+	 * 
+	 * (Math.random() <0.5)
+	 * @return pair Pair<EmailDataset> - two datasets
+	 * that result from the split of the current one
+	 */
 	public Pair<EmailDataset> split(){
 		EmailDataset ds1 = new EmailDataset();
 		EmailDataset ds2 = new EmailDataset();

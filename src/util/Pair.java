@@ -52,7 +52,7 @@ public class Pair<T> {
 	 * 
 	 * (usefull if you construct empty pairs and instantiate them latter on)
 	 * 
-	 * @return first T - first element 
+	 * 
 	 */
 	public void setFirst(T first){
 		this.first = first;
@@ -63,7 +63,7 @@ public class Pair<T> {
 	 * 
 	 * (usefull if you construct empty pairs and instantiate them latter on)
 	 * 
-	 * @return second T - second element 
+	 * 
 	 */
 	public void setSecond(T second){
 		this.second = second;
