@@ -271,9 +271,9 @@ public class EmailDataset implements Cloneable, Iterable<EmailMessage> {
 		
 		for(EmailMessage m : messages)
 			if(Math.random() < 0.5)
-				ds1.add(m);
+				ds1.add(m.clone());
 			else
-				ds2.add(m);
+				ds2.add(m.clone());
 		
 		return new Pair<EmailDataset>(ds1, ds2);
 	}

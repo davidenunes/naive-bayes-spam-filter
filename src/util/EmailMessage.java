@@ -98,7 +98,7 @@ public class EmailMessage implements Iterable<Integer> {
 	 * 
 	 */
 	public EmailMessage clone(){
-		return new EmailMessage(getClassification(),(HashMap<Integer, Integer>) tokens.clone());
+		return new EmailMessage(getClassification(),new HashMap<Integer, Integer>(tokens));
 	}
 	
 	
@@ -123,9 +123,10 @@ public class EmailMessage implements Iterable<Integer> {
 		tokens.remove(tokens);
 	}
 	
+	
 	public void filter(Collection<Integer> tokenFilter){
-		for(Integer token : tokens.keySet()){
-			if(!tokenFilter.contains(token))
+		for(Integer token : tokenFilter){
+			if(tokens.containsKey(token))
 				tokens.remove(token);
 		}
 	}
