@@ -261,14 +261,20 @@ public class EmailDataset implements Cloneable, Iterable<EmailMessage> {
 		return new Pair<EmailDataset>(ds1, ds2);
 	}
 	
-	public boolean sameClassification(EmailDataset ds2){
-		Iterator<EmailMessage> it = ds2.iterator();
-		
-		for(EmailMessage m : messages)
-			if(m.getClassification() != it.next().getClassification())
-				return false;
-			
-		return true;	
+	/**
+	 * Returns the list of classifications following the 
+	 * same order of the messages stored
+	 * 
+	 * @return classifications List<Integer>
+	 */
+	public List<Integer> getClassifications(){
+		List<Integer> classifs = new LinkedList<Integer>();
+		for(EmailMessage m: messages)
+			classifs.add(m.getClassification());
+		return classifs;
 	}
+	
+	
+	
 	
 }

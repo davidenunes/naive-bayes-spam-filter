@@ -3,24 +3,15 @@ import io.TFReader;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Vector;
-
-import javax.swing.text.StyleContext.SmallAttributeSet;
 
 import util.EmailDataset;
 import util.EmailMessage;
 import util.Pair;
-import util.ThresholdTable;
 
 /**
  * Class that represents a Naive Bayes Classifier
@@ -62,7 +53,7 @@ public class NaiveBayes {
 		//read and store the data
 		TFReader reader = new TFReader(filename);
 		EmailDataset data = reader.read();
-
+		
 		//calculate the threshold
 		threshold= 8;//threashold(filename);
 
@@ -140,10 +131,10 @@ public class NaiveBayes {
 
 
 			//some feedback
-			System.out.println("Modelo2:");
-			System.out.println("nummsg: "+trainData.getNumMessages());
-			System.out.println("numham:"+trainData.getNumHam());
-			System.out.println("numspam:"+trainData.getNumSpam());
+			System.out.println("Current Model:");
+			System.out.println("num msg: "+trainData.getNumMessages());
+			System.out.println("num ham:"+trainData.getNumHam());
+			System.out.println("num spam:"+trainData.getNumSpam());
 
 
 			datasetMerged = tempDataset.clone();
@@ -157,7 +148,7 @@ public class NaiveBayes {
 
 			System.out.println("diferença corrente: "+ (currentLikehood - previousLikehood));
 			
-		}while(Math.abs(currentLikehood - previousLikehood) == 0);
+		}while((currentLikehood - previousLikehood) == 0.0);
 
 
 	}
@@ -408,8 +399,8 @@ public int classify(EmailMessage m, double threshold){
  * 
  * @throws FileNotFoundException
  */
-public static List<ThresholdTable> threashold(String filename)throws FileNotFoundException{
-	List<ThresholdTable> v =new LinkedList<ThresholdTable>();
+public static LinkedHashMap<Double, Pair<Integer>> threashold(String filename)throws FileNotFoundException{
+	LinkedHashMap<Double, Pair<Integer>> thresholds = new LinkedHashMap<Double, Pair<Integer>>();
 	
 	//read file
 	TFReader reader = new TFReader(filename);
@@ -436,11 +427,11 @@ public static List<ThresholdTable> threashold(String filename)throws FileNotFoun
 				fn++;
 
 		}
-		v.add(new ThresholdTable(t,fp,fn)); 
+		thresholds.put(new Double(t), new Pair<Integer>(fp, fn));
 	}
 
 	
-	return v;
+	return thresholds;
 }
 
 

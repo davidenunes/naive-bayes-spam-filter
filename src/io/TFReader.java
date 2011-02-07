@@ -8,7 +8,6 @@ import java.util.Scanner;
 
 import util.EmailDataset;
 import util.EmailMessage;
-import util.Pair;
 
 
 
@@ -83,55 +82,5 @@ public class TFReader {
 		return new EmailDataset(messages);
 		
 	}
-	
-	
-	//TODO why not constrain this to email dataset
-	/*
-	 * Hago la division del fichero de datos, conjunto de train primer emaildataset
-	 * segundo emaildataset validacion
-	 */
-	public Pair<EmailDataset> divisaoConjuntoDados(String filename) throws FileNotFoundException {
-		
-		List<EmailMessage> messagesTrain = new LinkedList<EmailMessage>();
-		List<EmailMessage> messagesValidacao = new LinkedList<EmailMessage>();
-		EmailDataset train=null;
-		EmailDataset validacao=null;
-		
-		Scanner sc = new Scanner(new FileReader(filename));
-		
-		HashMap<Integer, Integer> currentHashMap = null;
-		while(sc.hasNextLine()){
-			String line = sc.nextLine();
-			String[] pairs = line.split(" ");
-			
-			int classification = Integer.parseInt(pairs[0]);
-			currentHashMap = new HashMap<Integer, Integer>();
-			String[] integers = null;
-			for(int i=1; i<pairs.length; i++){
-				 integers = pairs[i].split(":");
-				 int n1 = Integer.parseInt(integers[0]);
-				 int n2 = Integer.parseInt(integers[1]);				 
-				 currentHashMap.put(n1, n2);
-			}
-			
-			if(Math.random() > 0.5)//subtrain set
-				messagesTrain.add(new EmailMessage(classification, currentHashMap));
-			else
-				messagesValidacao.add(new EmailMessage(classification, currentHashMap));
-				
-		}
-				
-		sc.close();
-		train=new EmailDataset(messagesTrain);
-		validacao = new EmailDataset(messagesValidacao);
-		
-		Pair<EmailDataset> p= new Pair <EmailDataset>();
-		p.setFirst(train);
-		p.setSecond(validacao);
-		return p;
-	}
-	
-	
-	
 }
 
