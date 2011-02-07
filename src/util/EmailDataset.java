@@ -182,6 +182,14 @@ public class EmailDataset implements Cloneable, Iterable<EmailMessage> {
 		return tokens.size();
 	}
 	
+	public HashSet<Integer> getDictionary(){
+		HashSet<Integer> tokens = new HashSet<Integer>();
+		for(EmailMessage m : messages){
+			tokens.addAll(m.getTokens().keySet());
+		}
+		return tokens;
+	}
+	
 	public int getDictionaryDim(){
 		return dictionaryDim;
 	}

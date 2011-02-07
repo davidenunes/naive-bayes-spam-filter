@@ -28,12 +28,15 @@ public class NaiveBayes {
 	private EmailDataset trainData;
 	private HashMap<Integer, Integer> spamOcurrTable; 
 	private HashMap<Integer, Integer> hamOcurrTable;
+	private int spamTotalOcurr;
+	private int hamTotalOcurr;
+	
 
 	//token probability tables
 	private HashMap<Integer, Double> spamProbTable; 
 	private HashMap<Integer, Double> hamProbTable;
 
-	private int threshold; //classification threshold
+	private double threshold; //classification threshold
 
 	private int dim;
 	private double spamProb;
@@ -49,13 +52,13 @@ public class NaiveBayes {
 	 * 
 	 * @throws FileNotFoundException
 	 */
-	public NaiveBayes(String filename, Integer sigTokens) throws FileNotFoundException{
+	public NaiveBayes(String filename, int sigTokens, double threshold) throws FileNotFoundException{
 		//read and store the data
 		TFReader reader = new TFReader(filename);
 		EmailDataset data = reader.read();
 		
 		//calculate the threshold
-		threshold= 8;//threashold(filename);
+		this.threshold= threshold;//threashold(filename);
 
 
 		initModel(data);
@@ -73,28 +76,36 @@ public class NaiveBayes {
 	 * @param data EmailDataset - the data used to initialize and train the model
 	 */
 	private void initModel(EmailDataset data){
+		System.out.println("initialization a naive bayes model");
 		trainData = data;
 		dim=trainData.getDictionaryDim();
 
 		//get and init token dictionary tables
+		System.out.println("get total occurrencies for the tokens");
 		Pair<HashMap<Integer, Integer>> pair = trainData.getTotalTokenOcurr();
 		spamOcurrTable = pair.getFirst();
 		hamOcurrTable = pair.getSecont();
+		spamTotalOcurr = allTokenOcurr(spamOcurrTable);
+		hamTotalOcurr = allTokenOcurr(hamOcurrTable);
 
+		System.out.println("calculate the conditional probabilities");
 		//init probability tables
 		spamProbTable = new HashMap<Integer, Double>();
 		hamProbTable = new HashMap<Integer, Double>();
 		tableTokenProb(); //fills the two previous tables
+		System.out.println("tables are filled");
 
+		System.out.println("get class probabilities");
 		//init class prob
 		spamProb = getClassProb("spam");
 		hamProb = getClassProb("ham");
-
+		System.out.println("done");
 	}
 
 
 
 	public void algoritmoEM(String filename1, String filename2)throws FileNotFoundException{
+		System.out.println("initializing the EM algorithm");
 		TFReader rf1 = new TFReader(filename1);
 		TFReader rf2 = new TFReader(filename2);
 
@@ -103,20 +114,22 @@ public class NaiveBayes {
 		EmailDataset dataset2 = rf2.read();
 
 
-
+		System.out.println("merging the files with no labels");
 		//merge data
 		EmailDataset datasetMerged = new EmailDataset();
 		datasetMerged.merge(dataset1);
 		datasetMerged.merge(dataset2);
+		System.out.println("done new set ready for classification");
 
 		//save the current 2 datasets for later iteration
 		EmailDataset tempDataset = datasetMerged.clone();
 		EmailDataset tempTrain = trainData.clone();
 
-
+		System.out.println("classifying the merged data");
 		//classify 2 sets
-		classifyAll(datasetMerged, threshold); 
+		classifyAll(datasetMerged); 
 		
+		System.out.println("extend the training dataset");
 		//merge to training data
 		datasetMerged.merge(trainData);
 		
@@ -124,8 +137,9 @@ public class NaiveBayes {
 		double previousLikehood= 0;
 		double currentLikehood = 0;
 		
-		
+		System.out.println("creating the 1st extended model");
 		initModel(datasetMerged);
+		System.out.println("iterating...");
 		do{
 			previousLikehood = currentLikehood;
 
@@ -138,17 +152,21 @@ public class NaiveBayes {
 
 
 			datasetMerged = tempDataset.clone();
-			//classify 
-			classifyAll(datasetMerged, threshold);
+			System.out.println("classifying the data with the current model");
+			//classify
+			classifyAll(datasetMerged);
+			System.out.println("extend training dataset");
 			datasetMerged.merge(tempTrain);
-
+			
+			System.out.println("create new model");
 			initModel(datasetMerged);//reset the model train data changes
 
+			System.out.println("calculating likehood");
 			currentLikehood=getLikehood();
 
-			System.out.println("diferença corrente: "+ (currentLikehood - previousLikehood));
+			System.out.println("likehood difference: "+ (currentLikehood - previousLikehood));
 			
-		}while((currentLikehood - previousLikehood) == 0.0);
+		}while(Math.abs(currentLikehood - previousLikehood) > 0);
 
 
 	}
@@ -255,12 +273,9 @@ public static LinkedHashMap<Integer, Double> orderValues(LinkedHashMap<Integer, 
  * 
  * The dataset passed is modified adding the classifications to the data
  */
-public void classifyAll(EmailDataset data, int threshold){
-	int predict = 0;		
+public void classifyAll(EmailDataset data){	
 	for(EmailMessage m:data){
-		predict= classify(m, threshold);
-		//System.out.println(classePredic);
-		m.classify(predict);	
+		classify(m, threshold);
 	}
 }
 
@@ -298,24 +313,20 @@ private double getClassProb(String c){
 private double getTokenProb(int token, String c){
 
 	HashMap<Integer, Integer> current = null;
+	int sumOcurrToken = 0;
 	if(c.equals("spam")){
 		current = spamOcurrTable;
+		sumOcurrToken = spamTotalOcurr;
 	}if(c.equals("ham")){
 		current = hamOcurrTable;
+		sumOcurrToken = hamTotalOcurr;
 	}
 	
 	int ocurrToken = 0;
 	if(current.containsKey(token))
 		ocurrToken = current.get(token);
 	
-	
-	int sumOcurrToken = 0;
-	sumOcurrToken = allTokenOcurr(current);
-	
-	
-	double denom = (sumOcurrToken + dim)*1.0;
-
-	double result = (ocurrToken + 1) / denom;
+	double result = (ocurrToken + 1) / ((sumOcurrToken + dim)*1.0);
 
 	
 	
@@ -345,12 +356,8 @@ private int allTokenOcurr(HashMap<Integer, Integer> classTable){
  * 
  */
 private void tableTokenProb(){
-	for(Integer key : spamOcurrTable.keySet()){
+	for(Integer key : trainData.getDictionary()){
 		spamProbTable.put(key, getTokenProb(key, "spam"));
-		
-	}
-	for(Integer key : hamOcurrTable.keySet()){
-		
 		hamProbTable.put(key, getTokenProb(key, "ham"));
 	}
 }
@@ -371,22 +378,22 @@ public int classify(EmailMessage m, double threshold){
 	for(Integer token: m){
 		if(spamProbTable.containsKey(token)){
 			result += Math.log10(spamProbTable.get(token) / (hamProbTable.get(token)*1.0));
-		}else{
-			result+=  Math.log10((getTokenProb(token, "spam")/(getTokenProb(token, "ham")*1.0)));
-			
+		}else{//safegard for unseen tokens
+			result+=  Math.log10((getTokenProb(token, "spam")/(getTokenProb(token, "ham")*1.0)));		
 		}
 	}
 
 	
 	int classification = 0;
 	
-	if(result >  Math.log10(threshold))
+	if(result >=  Math.log10(threshold))
 		classification = 1;
 	else
 		classification = -1;
 
 	//System.out.println("Classification: "+ classification);
 
+	m.classify(classification);
 	return classification;
 }
 

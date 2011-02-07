@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class Test {
 	 */
 	public static void main(String[] args) throws FileNotFoundException {
 		
-		NaiveBayes nb = new NaiveBayes("labeled_train.tf", 20);
+		NaiveBayes nb = new NaiveBayes("u0_eval_lab.tf", 20, 30);
 //		
 //		TFReader reader = new TFReader("labeled_train.tf");
 //		
@@ -31,12 +32,28 @@ public class Test {
 //		int predicted = nb.classify(msg, 4);
 //		System.out.println(predicted);
 		
-		nb.algoritmoEM("u0_eval.tf", "u1_eval.tf");
+		nb.algoritmoEM("labeled_train.tf", "u1_eval.tf");
 		
-		TFReader reader = new TFReader("u2_eval.tf");
+		TFReader reader = new TFReader("u2_eval_lab.tf");
 		
+		EmailDataset actual = reader.read();
+		EmailDataset predict = actual.clone();
+		nb.classifyAll(predict);
 		
-		nb.classifyAll(reader.read(), 4);
+		List<Integer> classifsActual = actual.getClassifications();
+		List<Integer> classifsPredicted = predict.getClassifications(); //post classif
+		
+		Iterator<Integer> it = classifsPredicted.iterator();
+		
+		int count = 0;
+		for(Integer c : classifsActual){
+			//System.out.print("c: "+c+" ");
+			//System.out.println("c: "+it.next()+" ");
+			if(c == it.next())
+				count++;
+		}
+		
+		System.out.println("correct: "+count/(classifsActual.size()*1.0));
 		
 		
 		
